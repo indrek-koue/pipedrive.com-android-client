@@ -14,7 +14,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		getFragmentManager().beginTransaction()
-				.replace(R.id.fragmentPlaceHolder, new LoginFragment()).commit();
+				.replace(R.id.fragmentPlaceHolder, new ContactsFragment()).commit();
 
 	}
 
