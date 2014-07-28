@@ -32,7 +32,15 @@ public class LoginFragment extends Fragment {
 
 	@Override
 	public void onStart() {
-		// TODO Auto-generated method stub
+		super.onStart();
+		
+		if (!getActivity().getPreferences(Context.MODE_PRIVATE)
+				.getString("api_token", "").equals("")) {
+			getFragmentManager().beginTransaction()
+					.replace(R.id.fragmentPlaceHolder, new ContactsFragment())
+					.commit();
+			return;
+		}
 
 		getView().findViewById(R.id.button1).setOnClickListener(
 				new View.OnClickListener() {
@@ -56,7 +64,7 @@ public class LoginFragment extends Fragment {
 					}
 				});
 
-		super.onStart();
+
 	}
 
 	protected void authenticate(String userName, String password) {

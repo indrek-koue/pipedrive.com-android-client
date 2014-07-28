@@ -13,6 +13,7 @@ import android.app.ListFragment;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -51,6 +52,24 @@ public class ContactsFragment extends ListFragment {
 							for (Data person : arg3.getData()) {
 								names.add(person.getName());
 							}
+
+							getListView().setOnScrollListener(
+									new EndlessScrollListener() {
+
+										@Override
+										public void onLoadMore(int page,
+												int totalItemsCount) {
+											// TODO Auto-generated method stub
+											Log.d("my", "load more: " + page
+													+ " " + totalItemsCount);
+											
+											// getListView().getAdapter()
+											// adapter.addAll(newContacts);
+											// adapter.notifyDataSetChanged();
+											
+
+										}
+									});
 
 							setListAdapter(new ArrayAdapter<String>(
 									getActivity(),
@@ -94,6 +113,22 @@ public class ContactsFragment extends ListFragment {
 		);
 
 		super.onStart();
+	}
+
+	class ContactsAdapter extends ArrayAdapter<Data> {
+
+		public ContactsAdapter(Context context, int resource, List<Data> objects) {
+			super(context, resource, objects);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+
+			// TODO Auto-generated method stub
+			return super.getView(position, convertView, parent);
+		}
+
 	}
 
 }
