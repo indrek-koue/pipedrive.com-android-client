@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.loopj.android.http.*;
 
 import android.app.ListFragment;
+import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -27,7 +28,8 @@ public class ContactsFragment extends ListFragment {
 
 		new AsyncHttpClient().get(
 				"http://api.pipedrive.com/v1/persons?start=0&sort_mode=asc&api_token="
-						+ "6b36cf0c4b2fa9c4bbfc0596912d30fe04c55e55",
+						+ getActivity().getPreferences(Context.MODE_PRIVATE)
+								.getString("api_token", ""),
 				new BaseJsonHttpResponseHandler<ResponseBody>() {
 
 					@Override
