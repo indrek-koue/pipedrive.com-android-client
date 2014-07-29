@@ -1,6 +1,11 @@
 package com.example.pipedrivetest.util;
 
 import static com.example.pipedrivetest.util.Util.PREFKEY_API_TOKEN;
+import static com.example.pipedrivetest.util.Util.logError;
+import static com.example.pipedrivetest.util.Util.showMessage;
+
+import com.example.pipedrivetest.model.BaseResponse;
+
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
@@ -25,6 +30,13 @@ public class Util {
 
 	public static void showMessage(Activity a, String msg) {
 		Toast.makeText(a, msg, Toast.LENGTH_LONG).show();
+	}
+
+	public static void requestFailed(Activity a, Throwable t, BaseResponse r) {
+
+		logError(t.toString());
+		if (r != null)
+			showMessage(a, r.getError());
 	}
 
 	public static String getApiTokenFromPersistantStorage(Activity a) {

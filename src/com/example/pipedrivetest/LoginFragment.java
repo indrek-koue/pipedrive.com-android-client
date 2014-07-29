@@ -3,6 +3,7 @@ package com.example.pipedrivetest;
 import org.apache.http.Header;
 
 import com.example.pipedrivetest.model.auth.*;
+
 import static com.example.pipedrivetest.util.Util.*;
 
 import com.google.gson.Gson;
@@ -82,9 +83,7 @@ public class LoginFragment extends Fragment {
 							AuthorizationResponse arg4) {
 
 						loadingIndicator.setVisibility(View.GONE);
-						logError(arg2.toString());
-						showMessage(getActivity(), arg4.getError());
-
+						requestFailed(getActivity(), arg2, arg4);
 					}
 
 					@Override

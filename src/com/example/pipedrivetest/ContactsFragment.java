@@ -82,8 +82,7 @@ public class ContactsFragment extends ListFragment {
 							Throwable arg2, String arg3, ResponseBody arg4) {
 
 						setListShown(true);
-						logError(arg2.toString());
-						showMessage(getActivity(), arg4.getError());
+						requestFailed(getActivity(), arg2, arg4);
 					}
 
 					@Override

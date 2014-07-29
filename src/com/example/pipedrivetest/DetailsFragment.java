@@ -1,6 +1,7 @@
 package com.example.pipedrivetest;
 
 import static com.example.pipedrivetest.util.Util.*;
+
 import org.apache.http.Header;
 
 import com.example.pipedrivetest.model.ResponseBody;
@@ -71,8 +72,7 @@ public class DetailsFragment extends Fragment {
 							ResponseBodyDetails arg4) {
 
 						loadingIndicator.setVisibility(View.GONE);
-						logError(arg2.toString());
-						showMessage(getActivity(), arg4.getError());
+						requestFailed(getActivity(), arg2, arg4);
 					}
 
 					@Override
