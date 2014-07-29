@@ -59,7 +59,7 @@ public class ContactsFragment extends ListFragment {
 
 		setListShown(false);
 
-		new AsyncHttpClient().get(MainActivity.API_URL + "persons?start="
+		new AsyncHttpClient().get(Util.API_URL + "persons?start="
 				+ start + "&limit=" + limit + "&sort_mode=asc&api_token="
 				+ apiToken, new BaseJsonHttpResponseHandler<ResponseBody>() {
 

@@ -4,20 +4,26 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <ProgressBar
+    <LinearLayout
         android:id="@+id/progressBar1"
-        style="?android:attr/progressBarStyleLarge"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone" />
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone" >
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
     <EditText
         android:id="@+id/editText1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:text="a8316021@drdrb.net"
-        android:hint="@string/edittext_hint_username" >
+        android:hint="@string/edittext_hint_username"
+        android:text="a8316021@drdrb.net" >
     </EditText>
 
     <EditText
@@ -25,9 +31,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:text="U52qcSWS"
         android:hint="@string/edittext_hint_password"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:text="U52qcSWS" />
 
     <Button
         android:id="@+id/button1"

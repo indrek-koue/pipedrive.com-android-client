@@ -2,27 +2,25 @@ package com.example.pipedrivetest;
 
 import org.apache.http.Header;
 
-import com.example.pipedrivetest.model.ResponseBody;
 import com.example.pipedrivetest.model.auth.*;
+import static com.example.pipedrivetest.util.Util.*;
+
 import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.BaseJsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView.FindListener;
-import android.widget.BaseAdapter;
 import android.widget.EditText;
-import android.widget.Toast;
 
 public class LoginFragment extends Fragment {
+
+	private View loadingIndicator;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -33,14 +31,20 @@ public class LoginFragment extends Fragment {
 	@Override
 	public void onStart() {
 		super.onStart();
-		
-		if (!getActivity().getPreferences(Context.MODE_PRIVATE)
-				.getString("api_token", "").equals("")) {
+
+		Boolean isUserAuthenticated = !getActivity()
+				.getPreferences(Context.MODE_PRIVATE)
+				.getString(PREFKEY_API_TOKEN, "").equals("");
+
+		// if user is authenticated, skip login fragment
+		if (isUserAuthenticated) {
 			getFragmentManager().beginTransaction()
 					.replace(R.id.fragmentPlaceHolder, new ContactsFragment())
 					.commit();
 			return;
 		}
+
+		loadingIndicator = getView().findViewById(R.id.progressBar1);
 
 		getView().findViewById(R.id.button1).setOnClickListener(
 				new View.OnClickListener() {
@@ -50,10 +54,6 @@ public class LoginFragment extends Fragment {
 
 						String userName = getUserInputFromEdittext(R.id.editText1);
 						String password = getUserInputFromEdittext(R.id.editText2);
-
-						// new LoginAsync(getActivity()).execute(userName,
-						// password);
-
 						authenticate(userName, password);
 
 					}
@@ -64,53 +64,57 @@ public class LoginFragment extends Fragment {
 					}
 				});
 
-
 	}
 
-	protected void authenticate(String userName, String password) {
-		// TODO Auto-generated method stub
-		getView().findViewById(R.id.progressBar1).setVisibility(View.VISIBLE);
+	private void authenticate(String userName, String password) {
+
+		loadingIndicator.setVisibility(View.VISIBLE);
 
 		RequestParams params = new RequestParams();
-		params.add("email", userName);
-		params.add("password", password);
+		params.add(API_METHOD_AUTHORIZATIONS_PARAM_EMAIL, userName);
+		params.add(API_METHOD_AUTHORIZATIONS_PARAM_PASSWORD, password);
 
-		new AsyncHttpClient().post(
-				"http://api.pipedrive.com/v1/authorizations", params,
+		new AsyncHttpClient().post(API_URL + API_METHOD_AUTHORIZATIONS, params,
 				new BaseJsonHttpResponseHandler<AuthorizationResponse>() {
 
 					@Override
 					public void onFailure(int arg0, Header[] arg1,
 							Throwable arg2, String arg3,
 							AuthorizationResponse arg4) {
-						// TODO Auto-generated method stub
+
+						loadingIndicator.setVisibility(View.GONE);
+						logError(arg2.toString());
+						showMessage(getActivity(), arg4.getError());
 
 					}
 
 					@Override
 					public void onSuccess(int arg0, Header[] arg1, String arg2,
 							AuthorizationResponse arg3) {
-						// TODO Auto-generated method stub
 
-						getView().findViewById(R.id.progressBar1)
-								.setVisibility(View.GONE);
+						loadingIndicator.setVisibility(View.GONE);
 
-						// if has multiple api keys per account, picks first
-						if (arg3.getSuccess()) {
-							saveApiTokenToPreferences(arg3.getData().get(0)
-									.getApi_token());
+						if (arg3 != null && arg3.getSuccess()
+								&& arg3.getData() != null) {
+
+							// if has multiple api keys per account, picks first
+							String apiToken = arg3.getData().get(0)
+									.getApi_token();
+
+							saveApiTokenToPersistantStorage(apiToken);
+
+							//display next fragment
 							getFragmentManager()
 									.beginTransaction()
 									.replace(R.id.fragmentPlaceHolder,
 											new ContactsFragment()).commit();
 						}
-
 					}
 
 					@Override
 					protected AuthorizationResponse parseResponse(String arg0,
 							boolean arg1) throws Throwable {
-						// TODO Auto-generated method stub
+
 						return new Gson().fromJson(arg0,
 								AuthorizationResponse.class);
 					}
@@ -118,48 +122,13 @@ public class LoginFragment extends Fragment {
 
 	}
 
-	// class LoginAsync extends AsyncTask<String, Void, Boolean> {
-	//
-	// private Activity a;
-	//
-	// public LoginAsync(Activity a) {
-	// // TODO Auto-generated constructor stub
-	//
-	// this.a = a;
-	//
-	// a.findViewById(R.id.progressBar1).setVisibility(View.VISIBLE);
-	//
-	// }
-	//
-	// @Override
-	// protected Boolean doInBackground(String... params) {
-	//
-	// // api.pipedrive.com/v1/persons?start=0&sort_mode=asc&api_token=
-	// // 6b36cf0c4b2fa9c4bbfc0596912d30fe04c55e55
-	//
-	// // TODO Auto-generated method stub
-	// return null;
-	// }
-	//
-	// @Override
-	// protected void onPostExecute(Boolean result) {
-	//
-	// Toast.makeText(a, result ? "success" : "failed", Toast.LENGTH_LONG)
-	// .show();
-	//
-	// a.findViewById(R.id.progressBar1).setVisibility(View.GONE);
-	//
-	// super.onPostExecute(result);
-	// }
-	//
-	// }
-
-	protected boolean saveApiTokenToPreferences(String api_token) {
-		// TODO Auto-generated method stub
-
+	/**
+	 * @return true if the new values were successfully written to persistent
+	 *         storage.
+	 */
+	protected boolean saveApiTokenToPersistantStorage(String apiToken) {
 		return getActivity().getPreferences(Context.MODE_PRIVATE).edit()
-				.putString("api_token", api_token).commit();
-
+				.putString(PREFKEY_API_TOKEN, apiToken).commit();
 	}
 
 }

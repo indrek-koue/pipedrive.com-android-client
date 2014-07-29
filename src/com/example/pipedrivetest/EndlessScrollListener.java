@@ -4,10 +4,9 @@ import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 
 /**
- * @author 
- *         https://github.com/thecodepath/android_guides/wiki/Endless-Scrolling-with
- *         -AdapterViews
- * 
+ * Copyright
+ * https://github.com/thecodepath/android_guides/wiki/Endless-Scrolling-with
+ * -AdapterViews
  */
 
 public abstract class EndlessScrollListener implements OnScrollListener {
