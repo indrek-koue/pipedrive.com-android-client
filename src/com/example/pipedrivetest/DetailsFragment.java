@@ -1,5 +1,6 @@
 package com.example.pipedrivetest;
 
+import static com.example.pipedrivetest.util.Util.*;
 import org.apache.http.Header;
 
 import com.example.pipedrivetest.model.ResponseBody;
@@ -20,18 +21,26 @@ import android.widget.TextView;
 
 public class DetailsFragment extends Fragment {
 
-	private static final String ARGUMENT_ID = "id";
+	private static final String CONTACT_ID = "id";
+	private View loadingIndicator;
 
-	public static DetailsFragment newInstance(Number number) {
+	/*
+	 * Using arguments bundle guarantees when the fragment is recreated by the
+	 * system that the values from bundle are restored.
+	 * 
+	 * Why am I using static method? I could overload the default constructor,
+	 * but then I would also need to create an empty constructor which would
+	 * result in messier code
+	 */
+	public static DetailsFragment newInstance(Number contactId) {
 
 		DetailsFragment detailsFrag = new DetailsFragment();
 
 		Bundle bundle = new Bundle();
-		bundle.putInt(ARGUMENT_ID, number.intValue());
+		bundle.putInt(CONTACT_ID, contactId.intValue());
 		detailsFrag.setArguments(bundle);
 
 		return detailsFrag;
-
 	}
 
 	@Override
@@ -42,39 +51,52 @@ public class DetailsFragment extends Fragment {
 
 	@Override
 	public void onStart() {
+		super.onStart();
 
-		new AsyncHttpClient().get("http://api.pipedrive.com/v1/persons/"
-				+ getArguments().getInt(ARGUMENT_ID)
-				+ "?api_token=6b36cf0c4b2fa9c4bbfc0596912d30fe04c55e55",
+		loadingIndicator = getView().findViewById(R.id.progressBar1);
+		loadingIndicator.setVisibility(View.VISIBLE);
+
+		int contactId = getArguments().getInt(CONTACT_ID);
+
+		String requestUrl = API_URL + API_METHOD_CONTACTS + contactId + "?"
+				+ API_PARAM_TOKEN
+				+ getApiTokenFromPersistantStorage(getActivity());
+
+		new AsyncHttpClient().get(requestUrl,
 				new BaseJsonHttpResponseHandler<ResponseBodyDetails>() {
 
 					@Override
 					public void onFailure(int arg0, Header[] arg1,
 							Throwable arg2, String arg3,
 							ResponseBodyDetails arg4) {
-						Util.logError(this.getClass().getSimpleName() + " "
-								+ arg2);
+
+						loadingIndicator.setVisibility(View.GONE);
+						logError(arg2.toString());
+						showMessage(getActivity(), arg4.getError());
 					}
 
 					@Override
 					public void onSuccess(int arg0, Header[] arg1, String arg2,
 							ResponseBodyDetails arg3) {
-						getView().findViewById(R.id.progressBar1)
-								.setVisibility(View.GONE);
-						((TextView) getView().findViewById(R.id.textView1))
-								.setText(arg3.getData().toString());
+
+						loadingIndicator.setVisibility(View.GONE);
+
+						// display retrived data
+						if (arg3 != null && arg3.getSuccess()
+								&& arg3.getData() != null)
+							((TextView) getView().findViewById(R.id.textView1))
+									.setText(arg3.getData().toString());
 					}
 
 					@Override
 					protected ResponseBodyDetails parseResponse(String arg0,
 							boolean arg1) throws Throwable {
+
 						return new Gson().fromJson(arg0,
 								ResponseBodyDetails.class);
-
 					}
 				});
 
-		super.onStart();
 	}
 
 }

@@ -32,9 +32,8 @@ public class LoginFragment extends Fragment {
 	public void onStart() {
 		super.onStart();
 
-		Boolean isUserAuthenticated = !getActivity()
-				.getPreferences(Context.MODE_PRIVATE)
-				.getString(PREFKEY_API_TOKEN, "").equals("");
+		Boolean isUserAuthenticated = !getApiTokenFromPersistantStorage(
+				getActivity()).equals("");
 
 		// if user is authenticated, skip login fragment
 		if (isUserAuthenticated) {
@@ -103,7 +102,7 @@ public class LoginFragment extends Fragment {
 
 							saveApiTokenToPersistantStorage(apiToken);
 
-							//display next fragment
+							// display next fragment
 							getFragmentManager()
 									.beginTransaction()
 									.replace(R.id.fragmentPlaceHolder,
