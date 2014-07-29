@@ -13,6 +13,7 @@ import com.loopj.android.http.RequestParams;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,7 +75,11 @@ public class LoginFragment extends Fragment {
 		params.add(API_METHOD_AUTHORIZATIONS_PARAM_EMAIL, userName);
 		params.add(API_METHOD_AUTHORIZATIONS_PARAM_PASSWORD, password);
 
-		new AsyncHttpClient().post(API_URL + API_METHOD_AUTHORIZATIONS, params,
+		String requestUrl = new Uri.Builder().scheme(API_PROTOCOL)
+				.authority(API_AUTHORITY).appendPath(API_VER)
+				.appendPath(API_METHOD_AUTHORIZATIONS).build().toString();
+
+		new AsyncHttpClient().post(requestUrl, params,
 				new BaseJsonHttpResponseHandler<AuthorizationResponse>() {
 
 					@Override

@@ -13,6 +13,7 @@ import com.loopj.android.http.*;
 
 import android.app.ListFragment;
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 
 import org.apache.http.Header;
+import org.apache.http.protocol.HTTP;
 
 public class ContactsFragment extends ListFragment {
 
@@ -72,9 +74,16 @@ public class ContactsFragment extends ListFragment {
 		// show loading indicator
 		setListShown(false);
 
-		new AsyncHttpClient().get(Util.API_URL + API_METHOD_CONTACTS
-				+ "?start=" + start + "&limit=" + limit + "&sort_mode=asc&"
-				+ API_PARAM_TOKEN + apiToken,
+		String requestUrl = new Uri.Builder().scheme(API_PROTOCOL)
+				.authority(API_AUTHORITY).appendPath(API_VER)
+				.appendPath(API_METHOD_CONTACTS)
+				.appendQueryParameter("start", Integer.toString(start))
+				.appendQueryParameter("limit", Integer.toString(limit))
+				.appendQueryParameter("sort_mode", "asc")
+				.appendQueryParameter(API_PARAM_TOKEN, apiToken).build()
+				.toString();
+
+		new AsyncHttpClient().get(requestUrl,
 				new BaseJsonHttpResponseHandler<ResponseBody>() {
 
 					@Override

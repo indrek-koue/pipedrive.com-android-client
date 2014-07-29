@@ -13,6 +13,7 @@ import com.example.pipedrivetest.util.Util;
 import com.google.gson.Gson;
 
 import android.app.Fragment;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -58,10 +59,14 @@ public class DetailsFragment extends Fragment {
 		loadingIndicator.setVisibility(View.VISIBLE);
 
 		int contactId = getArguments().getInt(CONTACT_ID);
+		String apiToken = getApiTokenFromPersistantStorage(getActivity());
 
-		String requestUrl = API_URL + API_METHOD_CONTACTS + contactId + "?"
-				+ API_PARAM_TOKEN
-				+ getApiTokenFromPersistantStorage(getActivity());
+		String requestUrl = new Uri.Builder().scheme(API_PROTOCOL)
+				.authority(API_AUTHORITY).appendPath(API_VER)
+				.appendPath(API_METHOD_CONTACTS)
+				.appendPath(Integer.toString(contactId))
+				.appendQueryParameter(API_PARAM_TOKEN, apiToken).build()
+				.toString();
 
 		new AsyncHttpClient().get(requestUrl,
 				new BaseJsonHttpResponseHandler<ResponseBodyDetails>() {
