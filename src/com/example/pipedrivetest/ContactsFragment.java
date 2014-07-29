@@ -3,6 +3,8 @@ package com.example.pipedrivetest;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.pipedrivetest.util.Util.*;
+
 import com.example.pipedrivetest.model.Data;
 import com.example.pipedrivetest.model.ResponseBody;
 import com.example.pipedrivetest.util.Util;
@@ -14,7 +16,9 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 
@@ -24,133 +28,220 @@ public class ContactsFragment extends ListFragment {
 
 	public List<Data> data;
 
+	final int itemsPerScreen = 15;
+	private boolean canLoadMore = true;
+
 	@Override
 	public void onStart() {
 		super.onStart();
 
-		final String apiToken = getActivity().getPreferences(
-				Context.MODE_PRIVATE).getString("api_token", "");
+		final String apiToken = getApiTokenFromPersistantStorage(getActivity());
 
-		int start = 0;
-		final int limit = 15;
-		// final boolean isAppend = false;
-
-		load(apiToken, start, limit, false);
+		queryFromServerAndAppendToViews(apiToken, 0, itemsPerScreen, false);
 
 		getListView().setOnScrollListener(new EndlessScrollListener() {
 
 			@Override
 			public void onLoadMore(int page, int totalItemsCount) {
-				// TODO Auto-generated method stub
 				Log.d("my", "load more: " + page + " " + totalItemsCount);
 
-				load(apiToken, (page - 1) * limit, limit, true);
-				// getListView().getAdapter()
-				// adapter.addAll(newContacts);
-				// adapter.notifyDataSetChanged();
+				int pagingStart = (page - 1) * itemsPerScreen;
 
+				if (canLoadMore)
+					queryFromServerAndAppendToViews(apiToken, pagingStart,
+							itemsPerScreen, true);
 			}
 		});
 
 	}
 
-	private void load(String apiToken, int start, int limit,
-			final boolean isAppend) {
+	/**
+	 * 
+	 * @param apiToken
+	 *            for verifying access to the data
+	 * @param start
+	 *            paging start
+	 * @param limit
+	 *            paging count
+	 * @param isAppend
+	 *            is the new data going to be appended to the end of adapter
+	 */
+	private void queryFromServerAndAppendToViews(String apiToken, int start,
+			int limit, final boolean isAppend) {
 
+		// show loading indicator
 		setListShown(false);
 
-		new AsyncHttpClient().get(Util.API_URL + "persons?start="
-				+ start + "&limit=" + limit + "&sort_mode=asc&api_token="
-				+ apiToken, new BaseJsonHttpResponseHandler<ResponseBody>() {
+		new AsyncHttpClient().get(Util.API_URL + API_METHOD_CONTACTS
+				+ "?start=" + start + "&limit=" + limit + "&sort_mode=asc&"
+				+ API_PARAM_TOKEN + apiToken,
+				new BaseJsonHttpResponseHandler<ResponseBody>() {
 
-			@Override
-			public void onFailure(int arg0, Header[] arg1, Throwable arg2,
-					String arg3, ResponseBody arg4) {
-				Util.logError(this.getClass().getSimpleName() + " " + arg2);
-			}
+					@Override
+					public void onFailure(int arg0, Header[] arg1,
+							Throwable arg2, String arg3, ResponseBody arg4) {
 
-			@Override
-			public void onSuccess(int arg0, Header[] arg1, String arg2,
-					ResponseBody arg3) {
-
-				if (arg3.getSuccess()) {
-
-					List<String> names = new ArrayList<String>();
-
-					if (arg3.getData() == null || arg3.getData().size() == 0) {
 						setListShown(true);
-						return;
+						logError(arg2.toString());
+						showMessage(getActivity(), arg4.getError());
 					}
 
-					Log.d("ss", arg3.getData().size() + "");
+					@Override
+					public void onSuccess(int arg0, Header[] arg1, String arg2,
+							ResponseBody arg3) {
 
-					data = arg3.getData();
-					for (Data person : arg3.getData()) {
-						names.add(person.getName());
+						if (arg3 != null && arg3.getSuccess()
+								&& arg3.getData() != null) {
+
+							canLoadMore = arg3.getAdditional_data()
+									.getPagination()
+									.getMore_items_in_collection();
+
+							// store reference for later - we need details id
+							// when moving to detailsfragment
+							data = arg3.getData();
+
+							// convert data objects to list of names
+							List<String> names = new ArrayList<String>();
+							for (Data person : arg3.getData()) {
+								names.add(person.getName());
+							}
+
+							// is load more or load first time
+							if (isAppend) {
+								ArrayAdapter<String> adapter = (ArrayAdapter<String>) getListAdapter();
+								adapter.addAll(names);
+								adapter.notifyDataSetChanged();
+							} else {
+								setAdapterAndOnClick(names);
+							}
+
+						}
+
+						// hide loading indicators
+						setListShown(true);
+
 					}
 
-					if (isAppend) {
-						((ArrayAdapter) getListAdapter()).addAll(names);
-						((ArrayAdapter) getListAdapter())
-								.notifyDataSetChanged();
-					} else {
-						setListAdapter(new ArrayAdapter<String>(getActivity(),
-								android.R.layout.simple_list_item_1, names));
+					@Override
+					protected ResponseBody parseResponse(String arg0,
+							boolean arg1) throws Throwable {
 
-						getListView().setOnItemClickListener(
-								new OnItemClickListener() {
-
-									@Override
-									public void onItemClick(
-											AdapterView<?> arg0, View arg1,
-											int arg2, long arg3) {
-
-										DetailsFragment deFrag = DetailsFragment
-												.newInstance(data.get(arg2)
-														.getId());
-
-										getFragmentManager()
-												.beginTransaction()
-												.replace(
-														R.id.fragmentPlaceHolder,
-														deFrag)
-												.addToBackStack(null).commit();
-
-									}
-								});
+						return new Gson().fromJson(arg0, ResponseBody.class);
 					}
-
 				}
-
-				setListShown(true);
-
-			}
-
-			@Override
-			protected ResponseBody parseResponse(String arg0, boolean arg1)
-					throws Throwable {
-
-				return new Gson().fromJson(arg0, ResponseBody.class);
-			}
-		}
 
 		);
 	}
 
-	class ContactsAdapter extends ArrayAdapter<Data> {
+	public void setAdapterAndOnClick(List<String> names) {
 
-		public ContactsAdapter(Context context, int resource, List<Data> objects) {
-			super(context, resource, objects);
-			// TODO Auto-generated constructor stub
+		setListAdapter(new ArrayAdapter<String>(getActivity(),
+				android.R.layout.simple_list_item_1, names));
+
+		getListView().setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+					long arg3) {
+
+				DetailsFragment deFrag = DetailsFragment.newInstance(data.get(
+						arg2).getId());
+
+				getFragmentManager().beginTransaction()
+						.replace(R.id.fragmentPlaceHolder, deFrag)
+						.addToBackStack(null).commit();
+
+			}
+		});
+	}
+
+	/**
+	 * Helper class for determing when we need to load more objects to contacts
+	 * list
+	 * 
+	 * Copyright
+	 * https://github.com/thecodepath/android_guides/wiki/Endless-Scrolling-with
+	 * -AdapterViews
+	 */
+
+	public abstract class EndlessScrollListener implements OnScrollListener {
+		// The minimum amount of items to have below your current scroll
+		// position
+		// before loading more.
+		private int visibleThreshold = 0;
+		// The current offset index of data you have loaded
+		private int currentPage = 0;
+		// The total number of items in the dataset after the last load
+		private int previousTotalItemCount = 0;
+		// True if we are still waiting for the last set of data to load.
+		private boolean loading = true;
+		// Sets the starting page index
+		private int startingPageIndex = 0;
+
+		public EndlessScrollListener() {
 		}
+
+		public EndlessScrollListener(int visibleThreshold) {
+			this.visibleThreshold = visibleThreshold;
+		}
+
+		public EndlessScrollListener(int visibleThreshold, int startPage) {
+			this.visibleThreshold = visibleThreshold;
+			this.startingPageIndex = startPage;
+			this.currentPage = startPage;
+		}
+
+		// This happens many times a second during a scroll, so be wary of the
+		// code
+		// you place here.
+		// We are given a few useful parameters to help us work out if we need
+		// to
+		// load some more data,
+		// but first we check if we are waiting for the previous load to finish.
+		@Override
+		public void onScroll(AbsListView view, int firstVisibleItem,
+				int visibleItemCount, int totalItemCount) {
+			// If the total item count is zero and the previous isn't, assume
+			// the
+			// list is invalidated and should be reset back to initial state
+			if (totalItemCount < previousTotalItemCount) {
+				this.currentPage = this.startingPageIndex;
+				this.previousTotalItemCount = totalItemCount;
+				if (totalItemCount == 0) {
+					this.loading = true;
+				}
+			}
+
+			// If it’s still loading, we check to see if the dataset count has
+			// changed, if so we conclude it has finished loading and update the
+			// current page
+			// number and total item count.
+			if (loading && (totalItemCount > previousTotalItemCount)) {
+				loading = false;
+				previousTotalItemCount = totalItemCount;
+				currentPage++;
+			}
+
+			// If it isn’t currently loading, we check to see if we have
+			// breached
+			// the visibleThreshold and need to reload more data.
+			// If we do need to reload some more data, we execute onLoadMore to
+			// fetch the data.
+			if (!loading
+					&& (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
+				onLoadMore(currentPage + 1, totalItemCount);
+				loading = true;
+			}
+		}
+
+		// Defines the process for actually loading more data based on page
+		public abstract void onLoadMore(int page, int totalItemsCount);
 
 		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-
-			// TODO Auto-generated method stub
-			return super.getView(position, convertView, parent);
+		public void onScrollStateChanged(AbsListView view, int scrollState) {
+			// Don't take any action on changed
 		}
-
 	}
 
 }
