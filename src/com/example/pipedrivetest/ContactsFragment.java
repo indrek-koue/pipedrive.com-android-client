@@ -99,7 +99,11 @@ public class ContactsFragment extends ListFragment {
 
 							// store reference for later - we need details id
 							// when moving to detailsfragment
-							data = arg3.getData();
+
+							if (data == null)
+								data = arg3.getData();
+							else
+								data.addAll(arg3.getData());
 
 							// convert data objects to list of names
 							List<String> names = new ArrayList<String>();
