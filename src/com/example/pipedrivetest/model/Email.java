@@ -1,7 +1,5 @@
 package com.example.pipedrivetest.model;
 
-import java.util.List;
-
 public class Email {
 	private String label;
 	private boolean primary;

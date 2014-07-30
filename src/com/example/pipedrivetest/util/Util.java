@@ -1,17 +1,17 @@
 package com.example.pipedrivetest.util;
 
-import static com.example.pipedrivetest.util.Util.PREFKEY_API_TOKEN;
-import static com.example.pipedrivetest.util.Util.logError;
-import static com.example.pipedrivetest.util.Util.showMessage;
-
 import com.example.pipedrivetest.model.BaseResponse;
-import com.example.pipedrivetest.model.ResponseBody;
-
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+/**
+ * Holds functionality which is used throughout the whole application
+ * 
+ * @author indrek kõue
+ * 
+ */
 public class Util {
 
 	public static final String TAG = "MY";
@@ -32,22 +32,59 @@ public class Util {
 		Log.e(TAG, s);
 	}
 
-	public static void showMessage(Activity a, String msg) {
-		Toast.makeText(a, msg, Toast.LENGTH_LONG).show();
+	/**
+	 * Shows message to UI using android.widget.Toast
+	 * 
+	 * @param activity
+	 *            Activity which is the parent of the Toast message
+	 * @param msg
+	 *            Message to display
+	 */
+	public static void showMessage(Activity activity, String msg) {
+		Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
 	}
 
-	public static void requestFailed(Activity a, Throwable t, BaseResponse r) {
+	/**
+	 * Logs and shows an error message when request to server has failed
+	 * 
+	 * @param activity
+	 *            Activity used to display Toast message
+	 * @param t
+	 *            Exception occurred
+	 * @param response
+	 *            Server response
+	 */
+	public static void requestFailed(Activity activity, Throwable t,
+			BaseResponse response) {
 
 		logError(t.toString());
-		if (r != null)
-			showMessage(a, r.getError());
+		if (response != null)
+			showMessage(activity, response.getError());
 	}
 
+	/**
+	 * Retrieves API token from persistent storage
+	 * 
+	 * @param a
+	 *            Activity through which persistent storage (SharedPreferences)
+	 *            is accessed
+	 * @return API token string if exists, otherwise empty string
+	 */
 	public static String getApiTokenFromPersistantStorage(Activity a) {
 		return a.getPreferences(Context.MODE_PRIVATE).getString(
 				PREFKEY_API_TOKEN, "");
 	}
 
+	/**
+	 * Validates if the result returned from server isn't null and activity
+	 * exist on the give time to start drawing views to UI
+	 * 
+	 * @param response
+	 *            Server response
+	 * @param activity
+	 *            Activity to be checked if exists
+	 * @return True if data can be attached to UI
+	 */
 	public static boolean isResultValidAndUiReady(BaseResponse response,
 			Activity activity) {
 		return response != null && response.getSuccess() && activity != null;

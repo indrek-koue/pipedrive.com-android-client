@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model.auth;
 
-import java.util.List;
-
 public class Settings{
    	private Number add_followers_when_importing;
    	private Number allow_changing_visibility;

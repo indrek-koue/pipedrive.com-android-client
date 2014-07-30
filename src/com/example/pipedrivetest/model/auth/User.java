@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model.auth;
 
-import java.util.List;
-
 public class User{
    	private Locale locale;
    	private Profile profile;

@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model.auth;
 
-import java.util.List;
-
 public class Locale{
    	private String country;
    	private String language;

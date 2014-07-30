@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model;
 
-import java.util.List;
-
 public class Pagination{
    	private Number limit;
    	private boolean more_items_in_collection;

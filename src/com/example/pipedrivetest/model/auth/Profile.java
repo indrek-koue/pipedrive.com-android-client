@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model.auth;
 
-import java.util.List;
-
 public class Profile{
    	private boolean activated;
    	private String default_currency;

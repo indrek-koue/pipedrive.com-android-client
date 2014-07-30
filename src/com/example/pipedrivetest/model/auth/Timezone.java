@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model.auth;
 
-import java.util.List;
-
 public class Timezone{
    	private String name;
    	private Number offset;

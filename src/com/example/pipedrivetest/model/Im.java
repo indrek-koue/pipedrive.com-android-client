@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model;
 
-import java.util.List;
-
 public class Im{
    	private boolean primary;
    	private String value;

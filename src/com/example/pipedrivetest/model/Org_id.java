@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model;
 
-import java.util.List;
-
 public class Org_id{
    	private String name;
    	private Number people_count;

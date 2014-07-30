@@ -7,35 +7,42 @@ import static com.example.pipedrivetest.util.Util.*;
 
 import com.example.pipedrivetest.model.Data;
 import com.example.pipedrivetest.model.ResponseBody;
-import com.example.pipedrivetest.util.Util;
 import com.google.gson.Gson;
 import com.loopj.android.http.*;
 
-import android.app.Activity;
 import android.app.ListFragment;
-import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
-import android.widget.TextView;
-
 import org.apache.http.Header;
-import org.apache.http.protocol.HTTP;
 
+/**
+ * Displays all your contacts from your pipedrive account.
+ * 
+ * @author indrek kõue
+ * 
+ */
 public class ContactsFragment extends ListFragment {
 
-	public List<Data> data;
+	// we need to hold reference to all currently loaded contacts in order when
+	// user clicks on an item in the list, we can access this variable and get
+	// the corresponding ID of contacts to use in next fragment (details)
+	private List<Data> currentlyLoadedContacts;
 
-	final int itemsPerScreen = 15;
+	// count of items loaded in single batch
+	private final int itemsPerScreen = 15;
+
+	// does the server have more items to load
 	private boolean canLoadMore = true;
 
+	// indicator displayed in the end of the list when user scrolls to the end
+	// of list and there is more items to load
 	private ProgressBar loadingMoreProgressIndicator;
 
 	@Override
@@ -52,6 +59,7 @@ public class ContactsFragment extends ListFragment {
 
 			@Override
 			public void onLoadMore(int page, int totalItemsCount) {
+				// triggered when user scrolls to the end of the list
 				Log.d(TAG, "load more: " + page + " " + totalItemsCount);
 
 				int pagingStart = (page - 1) * itemsPerScreen;
@@ -70,13 +78,13 @@ public class ContactsFragment extends ListFragment {
 	 *            for verifying access to the data
 	 * @param start
 	 *            paging start
-	 * @param limit
+	 * @param itemCount
 	 *            paging count
 	 * @param isAppend
 	 *            is the new data going to be appended to the end of adapter
 	 */
 	private void queryFromServerAndAppendToViews(String apiToken, int start,
-			int limit, final boolean isAppend) {
+			int itemCount, final boolean isAppend) {
 
 		// show loading more indicator
 		loadingMoreProgressIndicator.setVisibility(View.VISIBLE);
@@ -85,7 +93,7 @@ public class ContactsFragment extends ListFragment {
 				.authority(API_AUTHORITY).appendPath(API_VER)
 				.appendPath(API_METHOD_CONTACTS)
 				.appendQueryParameter("start", Integer.toString(start))
-				.appendQueryParameter("limit", Integer.toString(limit))
+				.appendQueryParameter("limit", Integer.toString(itemCount))
 				.appendQueryParameter("sort_mode", "asc")
 				.appendQueryParameter(API_PARAM_TOKEN, apiToken).build()
 				.toString();
@@ -105,7 +113,6 @@ public class ContactsFragment extends ListFragment {
 					public void onSuccess(int arg0, Header[] arg1, String arg2,
 							ResponseBody arg3) {
 
-						// showing load more indicator at the end of listview
 						loadingMoreProgressIndicator.setVisibility(View.GONE);
 
 						if (isResultValidAndUiReady(arg3, getActivity())
@@ -116,7 +123,8 @@ public class ContactsFragment extends ListFragment {
 									.getPagination()
 									.getMore_items_in_collection();
 
-							// if there isnt more data, remove footer because
+							// if there isn't more data to load in the next
+							// request, remove footer because
 							// setting visibility to gone would hide the
 							// indicator BUT would still display empty list item
 							if (canLoadMore == false)
@@ -124,11 +132,11 @@ public class ContactsFragment extends ListFragment {
 										loadingMoreProgressIndicator);
 
 							// store reference for later - we need details id
-							// when moving to detailsfragment
-							if (data == null)
-								data = arg3.getData();
+							// when moving to DetailsFragment
+							if (currentlyLoadedContacts == null)
+								currentlyLoadedContacts = arg3.getData();
 							else
-								data.addAll(arg3.getData());
+								currentlyLoadedContacts.addAll(arg3.getData());
 
 							// convert data objects to list of names
 							List<String> names = new ArrayList<String>();
@@ -136,8 +144,10 @@ public class ContactsFragment extends ListFragment {
 								names.add(person.getName());
 							}
 
-							// is load more or load first time
+							// do we need to append to the end of the list or is
+							// it the first load for this list
 							if (isAppend) {
+								@SuppressWarnings("unchecked")
 								ArrayAdapter<String> adapter = (ArrayAdapter<String>) getListAdapter();
 								adapter.addAll(names);
 								adapter.notifyDataSetChanged();
@@ -160,10 +170,21 @@ public class ContactsFragment extends ListFragment {
 		);
 	}
 
+	/**
+	 * Creates an adapter and adds adapter to list. Also adds onClickListener to
+	 * listview ites
+	 * 
+	 * @param names
+	 *            List of strings to attach to view
+	 */
 	public void setAdapterAndOnClick(List<String> names) {
 
 		getListView().addFooterView(loadingMoreProgressIndicator);
 
+		// making a custom adapter with custom child views would allow us to
+		// display the items more throughly and allow us to use viewHolder
+		// pattern for more optimized result but currently this is out of scope
+		// of this assignment and would be "over-engineering"
 		setListAdapter(new ArrayAdapter<String>(getActivity(),
 				android.R.layout.simple_list_item_1, names));
 
@@ -173,11 +194,16 @@ public class ContactsFragment extends ListFragment {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 					long arg3) {
 
-				DetailsFragment deFrag = DetailsFragment.newInstance(data.get(
-						arg2).getId());
+				if (currentlyLoadedContacts == null
+						|| currentlyLoadedContacts.size() <= arg2)
+					return;
+
+				// switch to details fragment
+				DetailsFragment detailsFragment = DetailsFragment
+						.newInstance(currentlyLoadedContacts.get(arg2).getId());
 
 				getFragmentManager().beginTransaction()
-						.replace(R.id.fragmentPlaceHolder, deFrag)
+						.replace(R.id.fragmentPlaceHolder, detailsFragment)
 						.addToBackStack(null).commit();
 
 			}
@@ -185,7 +211,7 @@ public class ContactsFragment extends ListFragment {
 	}
 
 	/**
-	 * Helper class for determing when we need to load more objects to contacts
+	 * Helper class for determine when we need to load more objects to contacts
 	 * list
 	 * 
 	 * Copyright

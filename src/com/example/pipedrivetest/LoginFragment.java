@@ -20,8 +20,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+/**
+ * This fragment is used for user authentication. If the authentication is
+ * successful, then API token is returned from the server and is stored on
+ * Persistent storage on current device. This is the first Fragment displayed
+ * to user. If user has active API token in persistent storage, then this
+ * fragment is skipped
+ * 
+ * @author indrek kõue
+ * 
+ */
 public class LoginFragment extends Fragment {
 
+	// UI indicator if loading is taking place
 	private View loadingIndicator;
 
 	@Override
@@ -47,6 +58,7 @@ public class LoginFragment extends Fragment {
 
 		loadingIndicator = getView().findViewById(R.id.progressBar1);
 
+		// attach functionality to login button
 		getView().findViewById(R.id.button1).setOnClickListener(
 				new View.OnClickListener() {
 
@@ -59,6 +71,13 @@ public class LoginFragment extends Fragment {
 
 					}
 
+					/**
+					 * Helper method for extracting String from EditText view
+					 * 
+					 * @param id
+					 *            ID of the view
+					 * @return String extracted from the EditText view
+					 */
 					private String getUserInputFromEdittext(int id) {
 						return ((EditText) getView().findViewById(id))
 								.getText().toString();
@@ -67,14 +86,24 @@ public class LoginFragment extends Fragment {
 
 	}
 
+	/**
+	 * Authenticates user by user name and password. If the authentication is
+	 * successful, then API token is returned from the server and is stored on
+	 * Persistent storage on current device
+	 * 
+	 * @param userName
+	 *            User name of the account
+	 * @param password
+	 *            Password of the account
+	 */
 	private void authenticate(String userName, String password) {
 
 		loadingIndicator.setVisibility(View.VISIBLE);
 
+		// compose request
 		RequestParams params = new RequestParams();
 		params.add(API_METHOD_AUTHORIZATIONS_PARAM_EMAIL, userName);
 		params.add(API_METHOD_AUTHORIZATIONS_PARAM_PASSWORD, password);
-
 		String requestUrl = new Uri.Builder().scheme(API_PROTOCOL)
 				.authority(API_AUTHORITY).appendPath(API_VER)
 				.appendPath(API_METHOD_AUTHORIZATIONS).build().toString();
@@ -100,7 +129,9 @@ public class LoginFragment extends Fragment {
 						if (isResultValidAndUiReady(arg3, getActivity())
 								&& arg3.getData() != null) {
 
-							// if has multiple api keys per account, picks first
+							// if has multiple API keys per account, pick only
+							// first (making a selection from different API
+							// tokens was out of scope of this assignment)
 							String apiToken = arg3.getData().get(0)
 									.getApi_token();
 

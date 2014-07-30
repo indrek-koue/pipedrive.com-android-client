@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model;
 
-import java.util.List;
-
 public class Owner_id{
    	private String email;
    	private boolean has_pic;

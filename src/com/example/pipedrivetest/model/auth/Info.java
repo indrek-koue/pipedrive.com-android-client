@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model.auth;
 
-import java.util.List;
-
 public class Info{
    	private boolean account_is_not_paying;
    	private boolean account_is_open;

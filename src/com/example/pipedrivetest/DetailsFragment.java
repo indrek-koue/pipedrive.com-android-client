@@ -4,26 +4,31 @@ import static com.example.pipedrivetest.util.Util.*;
 
 import org.apache.http.Header;
 
-import com.example.pipedrivetest.model.ResponseBody;
 import com.example.pipedrivetest.model.ResponseBodyDetails;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.BaseJsonHttpResponseHandler;
-import com.example.pipedrivetest.model.Data;
-import com.example.pipedrivetest.util.Util;
 import com.google.gson.Gson;
 
 import android.app.Fragment;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+/**
+ * Displays the details of selected contact
+ * 
+ * @author indrek kõue
+ * 
+ */
 public class DetailsFragment extends Fragment {
 
+	//key for storing contact ID in bunfle
 	private static final String CONTACT_ID = "id";
+	
+	// UI indicator if loading is taking place
 	private View loadingIndicator;
 
 	/*

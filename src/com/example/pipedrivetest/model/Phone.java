@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model;
 
-import java.util.List;
-
 public class Phone{
    	private String label;
    	private boolean primary;

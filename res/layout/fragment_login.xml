@@ -14,8 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="@string/edittext_hint_username"
-        android:text="a8316021@drdrb.net" >
+        android:hint="@string/edittext_hint_username" >
     </EditText>
 
     <EditText
@@ -24,8 +23,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="@string/edittext_hint_password"
-        android:inputType="textPassword"
-        android:text="U52qcSWS" />
+        android:inputType="textPassword" />
 
     <Button
         android:id="@+id/button1"

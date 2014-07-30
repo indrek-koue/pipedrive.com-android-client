@@ -1,8 +1,6 @@
 
 package com.example.pipedrivetest.model.auth;
 
-import java.util.List;
-
 public class Additional_data{
    	private Number default_company_id;
    	private boolean multiple_companies;
