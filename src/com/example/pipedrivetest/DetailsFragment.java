@@ -25,7 +25,7 @@ import android.widget.TextView;
  */
 public class DetailsFragment extends Fragment {
 
-	//key for storing contact ID in bunfle
+	//key for storing contact ID in bundle
 	private static final String CONTACT_ID = "id";
 	
 	// UI indicator if loading is taking place

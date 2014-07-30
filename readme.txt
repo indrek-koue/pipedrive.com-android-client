@@ -15,7 +15,7 @@ Goals:
 Remarks from the developer:
 *UI is very very primitive, emphasis was put on correctesness and functionality of the application.
 
-*No consistent downloads and requests. Every time an activity is killed-created the request is redone. Currently I don't see it as a big problem becuse the data amounts are small and fresness of the data is important.
+*No consistent requests. Every time an activity is killed-created the request is redone. Currently it isn't a problem becuse the data amounts are small. If the request need to survive the configuration changes, then that would be solvable using fragment without UI which would hold reference to the downloader.
 
 
 

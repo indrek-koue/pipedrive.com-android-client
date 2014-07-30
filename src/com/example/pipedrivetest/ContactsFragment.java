@@ -12,6 +12,8 @@ import com.loopj.android.http.*;
 
 import android.app.ListFragment;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
@@ -20,6 +22,7 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
+
 import org.apache.http.Header;
 
 /**
@@ -33,7 +36,7 @@ public class ContactsFragment extends ListFragment {
 	// we need to hold reference to all currently loaded contacts in order when
 	// user clicks on an item in the list, we can access this variable and get
 	// the corresponding ID of contacts to use in next fragment (details)
-	private List<Data> currentlyLoadedContacts;
+	private List<Data> loadedContacts;
 
 	// count of items loaded in single batch
 	private final int itemsPerScreen = 15;
@@ -45,6 +48,11 @@ public class ContactsFragment extends ListFragment {
 	// of list and there is more items to load
 	private ProgressBar loadingMoreProgressIndicator;
 
+	// holds scroll state of the listview, so when user returns to this fragment
+	// from another fragment through backstack we can restore the position where
+	// user was previously scrolled
+	private Parcelable listScrollState;
+
 	@Override
 	public void onStart() {
 		super.onStart();
@@ -53,7 +61,15 @@ public class ContactsFragment extends ListFragment {
 
 		final String apiToken = getApiTokenFromPersistantStorage(getActivity());
 
-		queryFromServerAndAppendToViews(apiToken, 0, itemsPerScreen, false);
+		// do we have some loaded data or do we need to reload it from server?
+		if (loadedContacts != null) {
+			setAdapterAndOnClick(convertDataListToPersonNameList(loadedContacts));
+
+			// restore previous scroll position
+			getListView().onRestoreInstanceState(listScrollState);
+		} else {
+			queryFromServerAndAppendToViews(apiToken, 0, itemsPerScreen, false);
+		}
 
 		getListView().setOnScrollListener(new EndlessScrollListener() {
 
@@ -70,6 +86,13 @@ public class ContactsFragment extends ListFragment {
 			}
 		});
 
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+		// save scrollposition of the list
+		listScrollState = getListView().onSaveInstanceState();
 	}
 
 	/**
@@ -133,26 +156,22 @@ public class ContactsFragment extends ListFragment {
 
 							// store reference for later - we need details id
 							// when moving to DetailsFragment
-							if (currentlyLoadedContacts == null)
-								currentlyLoadedContacts = arg3.getData();
+							if (loadedContacts == null)
+								loadedContacts = arg3.getData();
 							else
-								currentlyLoadedContacts.addAll(arg3.getData());
-
-							// convert data objects to list of names
-							List<String> names = new ArrayList<String>();
-							for (Data person : arg3.getData()) {
-								names.add(person.getName());
-							}
+								loadedContacts.addAll(arg3.getData());
 
 							// do we need to append to the end of the list or is
 							// it the first load for this list
 							if (isAppend) {
 								@SuppressWarnings("unchecked")
 								ArrayAdapter<String> adapter = (ArrayAdapter<String>) getListAdapter();
-								adapter.addAll(names);
+								adapter.addAll(convertDataListToPersonNameList(arg3
+										.getData()));
 								adapter.notifyDataSetChanged();
 							} else {
-								setAdapterAndOnClick(names);
+								setAdapterAndOnClick(convertDataListToPersonNameList(arg3
+										.getData()));
 							}
 
 						}
@@ -194,13 +213,12 @@ public class ContactsFragment extends ListFragment {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 					long arg3) {
 
-				if (currentlyLoadedContacts == null
-						|| currentlyLoadedContacts.size() <= arg2)
+				if (loadedContacts == null || loadedContacts.size() <= arg2)
 					return;
 
 				// switch to details fragment
 				DetailsFragment detailsFragment = DetailsFragment
-						.newInstance(currentlyLoadedContacts.get(arg2).getId());
+						.newInstance(loadedContacts.get(arg2).getId());
 
 				getFragmentManager().beginTransaction()
 						.replace(R.id.fragmentPlaceHolder, detailsFragment)
@@ -208,6 +226,21 @@ public class ContactsFragment extends ListFragment {
 
 			}
 		});
+	}
+
+	/**
+	 * Extracts person names from data list
+	 * 
+	 * @param contacts
+	 *            To extract names from
+	 * @return List of names
+	 */
+	public List<String> convertDataListToPersonNameList(List<Data> contacts) {
+		List<String> names = new ArrayList<String>();
+		for (Data person : contacts) {
+			names.add(person.getName());
+		}
+		return names;
 	}
 
 	/**
