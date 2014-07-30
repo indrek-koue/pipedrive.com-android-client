@@ -11,6 +11,7 @@ import com.example.pipedrivetest.util.Util;
 import com.google.gson.Gson;
 import com.loopj.android.http.*;
 
+import android.app.Activity;
 import android.app.ListFragment;
 import android.content.Context;
 import android.net.Uri;
@@ -35,13 +36,13 @@ public class ContactsFragment extends ListFragment {
 	final int itemsPerScreen = 15;
 	private boolean canLoadMore = true;
 
-	private ProgressBar progressIndicator;
+	private ProgressBar loadingMoreProgressIndicator;
 
 	@Override
 	public void onStart() {
 		super.onStart();
 
-		progressIndicator = new ProgressBar(getActivity());
+		loadingMoreProgressIndicator = new ProgressBar(getActivity());
 
 		final String apiToken = getApiTokenFromPersistantStorage(getActivity());
 
@@ -78,7 +79,7 @@ public class ContactsFragment extends ListFragment {
 			int limit, final boolean isAppend) {
 
 		// show loading more indicator
-		progressIndicator.setVisibility(View.VISIBLE);
+		loadingMoreProgressIndicator.setVisibility(View.VISIBLE);
 
 		String requestUrl = new Uri.Builder().scheme(API_PROTOCOL)
 				.authority(API_AUTHORITY).appendPath(API_VER)
@@ -97,7 +98,7 @@ public class ContactsFragment extends ListFragment {
 							Throwable arg2, String arg3, ResponseBody arg4) {
 
 						requestFailed(getActivity(), arg2, arg4);
-						progressIndicator.setVisibility(View.GONE);
+						loadingMoreProgressIndicator.setVisibility(View.GONE);
 					}
 
 					@Override
@@ -105,9 +106,9 @@ public class ContactsFragment extends ListFragment {
 							ResponseBody arg3) {
 
 						// showing load more indicator at the end of listview
-						progressIndicator.setVisibility(View.GONE);
+						loadingMoreProgressIndicator.setVisibility(View.GONE);
 
-						if (arg3 != null && arg3.getSuccess()
+						if (isResultValidAndUiReady(arg3, getActivity())
 								&& arg3.getData() != null) {
 
 							// is there more data available
@@ -120,7 +121,7 @@ public class ContactsFragment extends ListFragment {
 							// indicator BUT would still display empty list item
 							if (canLoadMore == false)
 								getListView().removeFooterView(
-										progressIndicator);
+										loadingMoreProgressIndicator);
 
 							// store reference for later - we need details id
 							// when moving to detailsfragment
@@ -161,7 +162,7 @@ public class ContactsFragment extends ListFragment {
 
 	public void setAdapterAndOnClick(List<String> names) {
 
-		getListView().addFooterView(progressIndicator);
+		getListView().addFooterView(loadingMoreProgressIndicator);
 
 		setListAdapter(new ArrayAdapter<String>(getActivity(),
 				android.R.layout.simple_list_item_1, names));

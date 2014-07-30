@@ -97,7 +97,7 @@ public class LoginFragment extends Fragment {
 
 						loadingIndicator.setVisibility(View.GONE);
 
-						if (arg3 != null && arg3.getSuccess()
+						if (isResultValidAndUiReady(arg3, getActivity())
 								&& arg3.getData() != null) {
 
 							// if has multiple api keys per account, picks first

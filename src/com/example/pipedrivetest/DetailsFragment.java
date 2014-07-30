@@ -87,7 +87,7 @@ public class DetailsFragment extends Fragment {
 						loadingIndicator.setVisibility(View.GONE);
 
 						// display retrived data
-						if (arg3 != null && arg3.getSuccess()
+						if (isResultValidAndUiReady(arg3, getActivity())
 								&& arg3.getData() != null)
 							((TextView) getView().findViewById(R.id.textView1))
 									.setText(arg3.getData().toString());

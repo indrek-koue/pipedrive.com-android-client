@@ -5,6 +5,7 @@ import static com.example.pipedrivetest.util.Util.logError;
 import static com.example.pipedrivetest.util.Util.showMessage;
 
 import com.example.pipedrivetest.model.BaseResponse;
+import com.example.pipedrivetest.model.ResponseBody;
 
 import android.app.Activity;
 import android.content.Context;
@@ -45,6 +46,11 @@ public class Util {
 	public static String getApiTokenFromPersistantStorage(Activity a) {
 		return a.getPreferences(Context.MODE_PRIVATE).getString(
 				PREFKEY_API_TOKEN, "");
+	}
+
+	public static boolean isResultValidAndUiReady(BaseResponse response,
+			Activity activity) {
+		return response != null && response.getSuccess() && activity != null;
 	}
 
 }
