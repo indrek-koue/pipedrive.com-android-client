@@ -1,7 +1,3 @@
-# built application files
-*.apk
-*.ap_
-
 # files for the dex VM
 *.dex
 
@@ -18,15 +14,3 @@ local.properties
 # Eclipse project files
 .metadata
 .settings
-
-
-# don't want to make deltas too big
-*.db
-*.json
-
-#other
-*.txt
-*.json
-
-# project specific
-DataharvesterImage/img
