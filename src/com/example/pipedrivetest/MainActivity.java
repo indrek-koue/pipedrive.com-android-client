@@ -11,9 +11,11 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		getFragmentManager().beginTransaction()
-				.replace(R.id.fragmentPlaceHolder, new LoginFragment())
-				.commit();
+		// avoid re-adding the same fragment on configuration change
+		if (savedInstanceState == null)
+			getFragmentManager().beginTransaction()
+					.replace(R.id.fragmentPlaceHolder, new LoginFragment())
+					.commit();
 
 	}
 
