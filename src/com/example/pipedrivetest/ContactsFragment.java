@@ -22,6 +22,8 @@ import android.widget.AdapterView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import org.apache.http.Header;
 import org.apache.http.protocol.HTTP;
@@ -33,9 +35,13 @@ public class ContactsFragment extends ListFragment {
 	final int itemsPerScreen = 15;
 	private boolean canLoadMore = true;
 
+	private ProgressBar progressIndicator;
+
 	@Override
 	public void onStart() {
 		super.onStart();
+
+		progressIndicator = new ProgressBar(getActivity());
 
 		final String apiToken = getApiTokenFromPersistantStorage(getActivity());
 
@@ -45,7 +51,7 @@ public class ContactsFragment extends ListFragment {
 
 			@Override
 			public void onLoadMore(int page, int totalItemsCount) {
-				Log.d("my", "load more: " + page + " " + totalItemsCount);
+				Log.d(TAG, "load more: " + page + " " + totalItemsCount);
 
 				int pagingStart = (page - 1) * itemsPerScreen;
 
@@ -71,8 +77,8 @@ public class ContactsFragment extends ListFragment {
 	private void queryFromServerAndAppendToViews(String apiToken, int start,
 			int limit, final boolean isAppend) {
 
-		// show loading indicator
-		setListShown(false);
+		// show loading more indicator
+		progressIndicator.setVisibility(View.VISIBLE);
 
 		String requestUrl = new Uri.Builder().scheme(API_PROTOCOL)
 				.authority(API_AUTHORITY).appendPath(API_VER)
@@ -90,24 +96,34 @@ public class ContactsFragment extends ListFragment {
 					public void onFailure(int arg0, Header[] arg1,
 							Throwable arg2, String arg3, ResponseBody arg4) {
 
-						setListShown(true);
 						requestFailed(getActivity(), arg2, arg4);
+						progressIndicator.setVisibility(View.GONE);
 					}
 
 					@Override
 					public void onSuccess(int arg0, Header[] arg1, String arg2,
 							ResponseBody arg3) {
 
+						// showing load more indicator at the end of listview
+						progressIndicator.setVisibility(View.GONE);
+
 						if (arg3 != null && arg3.getSuccess()
 								&& arg3.getData() != null) {
 
+							// is there more data available
 							canLoadMore = arg3.getAdditional_data()
 									.getPagination()
 									.getMore_items_in_collection();
 
+							// if there isnt more data, remove footer because
+							// setting visibility to gone would hide the
+							// indicator BUT would still display empty list item
+							if (canLoadMore == false)
+								getListView().removeFooterView(
+										progressIndicator);
+
 							// store reference for later - we need details id
 							// when moving to detailsfragment
-
 							if (data == null)
 								data = arg3.getData();
 							else
@@ -130,9 +146,6 @@ public class ContactsFragment extends ListFragment {
 
 						}
 
-						// hide loading indicators
-						setListShown(true);
-
 					}
 
 					@Override
@@ -147,6 +160,8 @@ public class ContactsFragment extends ListFragment {
 	}
 
 	public void setAdapterAndOnClick(List<String> names) {
+
+		getListView().addFooterView(progressIndicator);
 
 		setListAdapter(new ArrayAdapter<String>(getActivity(),
 				android.R.layout.simple_list_item_1, names));

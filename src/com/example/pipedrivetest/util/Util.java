@@ -13,23 +13,22 @@ import android.widget.Toast;
 
 public class Util {
 
+	public static final String TAG = "MY";
+	public static final String PREFKEY_API_TOKEN = "api_token";
+
 	public static final String API_PROTOCOL = "http";
 	public static final String API_AUTHORITY = "api.pipedrive.com";
 	public static final String API_VER = "v1";
-	
-
-	public static final String PREFKEY_API_TOKEN = "api_token";
 
 	public static final String API_METHOD_AUTHORIZATIONS = "authorizations";
 	public static final String API_METHOD_AUTHORIZATIONS_PARAM_PASSWORD = "password";
 	public static final String API_METHOD_AUTHORIZATIONS_PARAM_EMAIL = "email";
-
 	public static final String API_METHOD_CONTACTS = "persons";
 
 	public static final String API_PARAM_TOKEN = "api_token";
 
 	public static void logError(String s) {
-		Log.e("MY", s);
+		Log.e(TAG, s);
 	}
 
 	public static void showMessage(Activity a, String msg) {
