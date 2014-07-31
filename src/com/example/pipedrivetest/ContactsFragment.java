@@ -33,10 +33,12 @@ import org.apache.http.Header;
  */
 public class ContactsFragment extends ListFragment {
 
-	// we need to hold reference to all currently loaded contacts in order when
-	// user clicks on an item in the list, we can access this variable and get
-	// the corresponding ID of contacts to use in next fragment (details)
-	private List<Data> loadedContacts;
+	private static final String KEY_LIST_SCROLL_STATE = "listScrollState";
+
+	// loaded contacts- we need the ID of specific contacts from here when
+	// navigatin to detailsFragment and this list maintains objects already
+	// loaded so we don't have to do it again
+	private ArrayList<Data> loadedContacts;
 
 	// count of items loaded in single batch
 	private final int itemsPerScreen = 15;
@@ -49,9 +51,26 @@ public class ContactsFragment extends ListFragment {
 	private ProgressBar loadingMoreProgressIndicator;
 
 	// holds scroll state of the listview, so when user returns to this fragment
-	// from another fragment through backstack we can restore the position where
+	// from another fragment through backstack (fragment is not destroyed yet)
+	// we can restore the position where
 	// user was previously scrolled
 	private Parcelable listScrollState;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+
+		// do we have a state to restore?
+		if (savedInstanceState != null
+				&& savedInstanceState
+						.getParcelableArrayList(KEY_LOADED_OBJECTS) != null) {
+			loadedContacts = savedInstanceState
+					.getParcelableArrayList(KEY_LOADED_OBJECTS);
+			listScrollState = savedInstanceState
+					.getParcelable(KEY_LIST_SCROLL_STATE);
+		}
+
+		super.onCreate(savedInstanceState);
+	}
 
 	@Override
 	public void onStart() {
@@ -66,7 +85,8 @@ public class ContactsFragment extends ListFragment {
 			setAdapterAndOnClick(convertDataListToPersonNameList(loadedContacts));
 
 			// restore previous scroll position
-			getListView().onRestoreInstanceState(listScrollState);
+			if (listScrollState != null)
+				getListView().onRestoreInstanceState(listScrollState);
 		} else {
 			queryFromServerAndAppendToViews(apiToken, 0, itemsPerScreen, false);
 		}
@@ -91,8 +111,24 @@ public class ContactsFragment extends ListFragment {
 	@Override
 	public void onStop() {
 		super.onStop();
-		// save scrollposition of the list
+
+		// save scrollposition of the list when user navigates to another
+		// fragment (fragment is not destroied yet)
 		listScrollState = getListView().onSaveInstanceState();
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+
+		// put loaded contacts+listview state to bundle to retrieve after
+		// configuration change
+		outState.putParcelableArrayList(KEY_LOADED_OBJECTS, loadedContacts);
+
+		if (getActivity() != null && getView() != null)
+			outState.putParcelable(KEY_LIST_SCROLL_STATE, getListView()
+					.onSaveInstanceState());
+
+		super.onSaveInstanceState(outState);
 	}
 
 	/**

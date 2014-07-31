@@ -1,6 +1,7 @@
 package com.example.pipedrivetest.util;
 
 import com.example.pipedrivetest.model.BaseResponse;
+
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
@@ -16,6 +17,7 @@ public class Util {
 
 	public static final String TAG = "MY";
 	public static final String PREFKEY_API_TOKEN = "api_token";
+	public static final String KEY_LOADED_OBJECTS = "loadedObjects";
 
 	public static final String API_PROTOCOL = "http";
 	public static final String API_AUTHORITY = "api.pipedrive.com";

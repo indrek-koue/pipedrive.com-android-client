@@ -4,6 +4,7 @@ import static com.example.pipedrivetest.util.Util.*;
 
 import org.apache.http.Header;
 
+import com.example.pipedrivetest.model.Data;
 import com.example.pipedrivetest.model.ResponseBodyDetails;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.BaseJsonHttpResponseHandler;
@@ -25,11 +26,13 @@ import android.widget.TextView;
  */
 public class DetailsFragment extends Fragment {
 
-	//key for storing contact ID in bundle
+	// key for storing contact ID in bundle
 	private static final String CONTACT_ID = "id";
-	
+
 	// UI indicator if loading is taking place
 	private View loadingIndicator;
+
+	private Data loadedContact;
 
 	/*
 	 * Using arguments bundle guarantees when the fragment is recreated by the
@@ -51,6 +54,18 @@ public class DetailsFragment extends Fragment {
 	}
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		// do we have a state to restore?
+		if (savedInstanceState != null
+				&& savedInstanceState.getParcelable(KEY_LOADED_OBJECTS) != null) {
+			loadedContact = savedInstanceState
+					.getParcelable(KEY_LOADED_OBJECTS);
+		}
+
+		super.onCreate(savedInstanceState);
+	}
+
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.fragment_details, container, false);
@@ -61,52 +76,75 @@ public class DetailsFragment extends Fragment {
 		super.onStart();
 
 		loadingIndicator = getView().findViewById(R.id.progressBar1);
-		loadingIndicator.setVisibility(View.VISIBLE);
 
-		int contactId = getArguments().getInt(CONTACT_ID);
-		String apiToken = getApiTokenFromPersistantStorage(getActivity());
+		if (loadedContact != null) {
+			// user already loaded
+			attachToUi(loadedContact);
 
-		String requestUrl = new Uri.Builder().scheme(API_PROTOCOL)
-				.authority(API_AUTHORITY).appendPath(API_VER)
-				.appendPath(API_METHOD_CONTACTS)
-				.appendPath(Integer.toString(contactId))
-				.appendQueryParameter(API_PARAM_TOKEN, apiToken).build()
-				.toString();
+		} else {
+			loadingIndicator.setVisibility(View.VISIBLE);
 
-		new AsyncHttpClient().get(requestUrl,
-				new BaseJsonHttpResponseHandler<ResponseBodyDetails>() {
+			// setup request
+			int contactId = getArguments().getInt(CONTACT_ID);
+			String apiToken = getApiTokenFromPersistantStorage(getActivity());
+			String requestUrl = new Uri.Builder().scheme(API_PROTOCOL)
+					.authority(API_AUTHORITY).appendPath(API_VER)
+					.appendPath(API_METHOD_CONTACTS)
+					.appendPath(Integer.toString(contactId))
+					.appendQueryParameter(API_PARAM_TOKEN, apiToken).build()
+					.toString();
 
-					@Override
-					public void onFailure(int arg0, Header[] arg1,
-							Throwable arg2, String arg3,
-							ResponseBodyDetails arg4) {
+			new AsyncHttpClient().get(requestUrl,
+					new BaseJsonHttpResponseHandler<ResponseBodyDetails>() {
 
-						loadingIndicator.setVisibility(View.GONE);
-						requestFailed(getActivity(), arg2, arg4);
-					}
+						@Override
+						public void onFailure(int arg0, Header[] arg1,
+								Throwable arg2, String arg3,
+								ResponseBodyDetails arg4) {
 
-					@Override
-					public void onSuccess(int arg0, Header[] arg1, String arg2,
-							ResponseBodyDetails arg3) {
+							loadingIndicator.setVisibility(View.GONE);
+							requestFailed(getActivity(), arg2, arg4);
+						}
 
-						loadingIndicator.setVisibility(View.GONE);
+						@Override
+						public void onSuccess(int arg0, Header[] arg1,
+								String arg2, ResponseBodyDetails arg3) {
 
-						// display retrived data
-						if (isResultValidAndUiReady(arg3, getActivity())
-								&& arg3.getData() != null)
-							((TextView) getView().findViewById(R.id.textView1))
-									.setText(arg3.getData().toString());
-					}
+							loadingIndicator.setVisibility(View.GONE);
 
-					@Override
-					protected ResponseBodyDetails parseResponse(String arg0,
-							boolean arg1) throws Throwable {
+							// display retrived data
+							if (isResultValidAndUiReady(arg3, getActivity())
+									&& arg3.getData() != null) {
 
-						return new Gson().fromJson(arg0,
-								ResponseBodyDetails.class);
-					}
-				});
+								loadedContact = arg3.getData();
+								attachToUi(loadedContact);
+							}
+						}
 
+						@Override
+						protected ResponseBodyDetails parseResponse(
+								String arg0, boolean arg1) throws Throwable {
+
+							return new Gson().fromJson(arg0,
+									ResponseBodyDetails.class);
+						}
+					});
+		}
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+
+		// put loaded contacts+listview state to bundle to retrieve after
+		// configuration change
+		outState.putParcelable(KEY_LOADED_OBJECTS, loadedContact);
+
+		super.onSaveInstanceState(outState);
+	}
+
+	public void attachToUi(Data contact) {
+		((TextView) getView().findViewById(R.id.textView1)).setText(contact
+				.toString());
 	}
 
 }

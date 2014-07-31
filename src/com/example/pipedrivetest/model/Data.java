@@ -2,7 +2,10 @@ package com.example.pipedrivetest.model;
 
 import java.util.List;
 
-public class Data {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Data implements Parcelable {
 	private boolean active_flag;
 	private String activities_count;
 	private String add_time;
@@ -34,6 +37,45 @@ public class Data {
 	private String undone_activities_count;
 	private String update_time;
 	private String visible_to;
+
+	// helper methods for Parcelable
+	public Data(Parcel in) {
+	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+	}
+
+	public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+		public Data createFromParcel(Parcel in) {
+			return new Data(in);
+		}
+
+		public Data[] newArray(int size) {
+			return new Data[size];
+		}
+	};
+
+	@Override
+	public String toString() {
+		return "name=" + name + "\nadd_time=" + add_time
+				+ "\nclosed_deals_count=" + closed_deals_count + "\nemail="
+				+ email + "\nfiles_count=" + files_count + "\nfirst_name="
+				+ first_name + "\nid=" + id + "\nim=" + im
+				+ "\nlast_activity_date=" + last_activity_date
+				+ "\nnext_activity_date=" + next_activity_date
+				+ "\nnext_activity_time=" + next_activity_time
+				+ "\nnotes_count=" + notes_count + "\nopen_deals_count="
+				+ open_deals_count + "\norg_name=" + org_name + "\nowner_name="
+				+ owner_name + "\nphone=" + phone
+				+ "\nundone_activities_count=" + undone_activities_count
+				+ "\nupdate_time=" + update_time + "\nvisible_to=" + visible_to;
+	}
 
 	public boolean getActive_flag() {
 		return this.active_flag;
@@ -282,30 +324,5 @@ public class Data {
 	public void setVisible_to(String visible_to) {
 		this.visible_to = visible_to;
 	}
-
-	@Override
-	public String toString() {
-		return "name=" + name + "\nadd_time=" + add_time
-				+ "\nclosed_deals_count=" + closed_deals_count + "\nemail="
-				+ email + "\nfiles_count=" + files_count + "\nfirst_name="
-				+ first_name + "\nid=" + id + "\nim=" + im
-				+ "\nlast_activity_date=" + last_activity_date
-				+ "\nnext_activity_date=" + next_activity_date
-				+ "\nnext_activity_time=" + next_activity_time
-				+ "\nnotes_count=" + notes_count + "\nopen_deals_count="
-				+ open_deals_count + "\norg_name=" + org_name + "\nowner_name="
-				+ owner_name + "\nphone=" + phone
-				+ "\nundone_activities_count=" + undone_activities_count
-				+ "\nupdate_time=" + update_time + "\nvisible_to=" + visible_to;
-	}
-
-	// @Override
-	// public String toString() {
-	// return "closed_deals_count=" + closed_deals_count + "\nemail=" + email
-	// + "\nfirst_name=" + first_name + "\nid=" + id + "\nim=" + im
-	// + "\nlast_name=" + last_name + "\nopen_deals_count="
-	// + open_deals_count + "\norg_name=" + org_name + "\nowner_name="
-	// + owner_name + "\nphone=" + phone;
-	// }
 
 }

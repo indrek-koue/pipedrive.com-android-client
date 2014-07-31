@@ -1,15 +1,16 @@
 package com.example.pipedrivetest.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ResponseBody extends BaseResponse {
-	private List<Data> data;
+	private ArrayList<Data> data;
 
-	public List<Data> getData() {
+	public ArrayList<Data> getData() {
 		return this.data;
 	}
 
-	public void setData(List<Data> data) {
+	public void setData(ArrayList<Data> data) {
 		this.data = data;
 	}
 
